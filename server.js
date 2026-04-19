@@ -7,9 +7,10 @@ const multer  = require('multer');
 const path    = require('path');
 const fs      = require('fs');
 
-const { parseCSV }     = require('./csvParser');
-const { executeSteps } = require('./executor');
-const { saveReport }   = require('./reportWriter');
+const { parseCSV }          = require('./csvParser');
+const { executeSteps }      = require('./executor');
+const { saveReport }        = require('./reportWriter');
+const { startRecording, stopRecording } = require('./recorder');
 
 const app    = express();
 const server = http.createServer(app);
@@ -78,6 +79,29 @@ app.post('/api/execute', async (req, res) => {
 });
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+
+// POST /api/record/start — open a browser and stream captured steps via socket
+app.post('/api/record/start', async (_req, res) => {
+  try {
+    await startRecording(
+      (step) => io.emit('recorded:step', step),
+      ()     => io.emit('recorded:stopped'),
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/record/stop — close the recording browser
+app.post('/api/record/stop', async (_req, res) => {
+  try {
+    await stopRecording();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`);

@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react';
-import { uploadCSV } from './api';
+import { useState, useRef, useEffect } from 'react';
+import { uploadCSV, startRecording, stopRecording } from './api';
+import socket from './socket';
 
 const ACTIONS = [
   'navigate','click','fill','select','check','uncheck',
@@ -29,13 +30,48 @@ const inputStyle = {
 const cellStyle = { padding: '4px 6px', verticalAlign: 'middle' };
 
 export default function Panel1Import({ onImported, initialSteps }) {
-  const [dragging, setDragging]   = useState(false);
-  const [steps, setSteps]         = useState(initialSteps?.length ? initialSteps : null);
-  const [error, setError]         = useState(null);
-  const [loading, setLoading]     = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [draft, setDraft]         = useState({});
+  const [dragging, setDragging]     = useState(false);
+  const [steps, setSteps]           = useState(initialSteps?.length ? initialSteps : null);
+  const [error, setError]           = useState(null);
+  const [loading, setLoading]       = useState(false);
+  const [editingId, setEditingId]   = useState(null);
+  const [draft, setDraft]           = useState({});
+  const [recording, setRecording]   = useState(false);
+  const [recError, setRecError]     = useState(null);
   const inputRef = useRef();
+
+  // ── Recording: receive steps streamed from server ────────────────────────
+  useEffect(() => {
+    const onStep = (step) => {
+      setSteps(prev => [...(prev || []), step]);
+    };
+    const onStopped = () => {
+      setRecording(false);
+    };
+    socket.on('recorded:step',    onStep);
+    socket.on('recorded:stopped', onStopped);
+    return () => {
+      socket.off('recorded:step',    onStep);
+      socket.off('recorded:stopped', onStopped);
+    };
+  }, []);
+
+  const handleStartRecording = async () => {
+    setRecError(null);
+    try {
+      await startRecording();
+      setRecording(true);
+    } catch (e) {
+      setRecError(e.message);
+    }
+  };
+
+  const handleStopRecording = async () => {
+    try {
+      await stopRecording();
+    } catch {}
+    setRecording(false);
+  };
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -118,6 +154,31 @@ export default function Panel1Import({ onImported, initialSteps }) {
           onChange={(e) => handleFile(e.target.files[0])} />
       </div>
 
+      {/* Recording indicator */}
+      {recording && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.4)',
+          borderRadius: 8, padding: '10px 16px', marginBottom: 12,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ color: 'var(--error)', fontSize: 16, animation: 'pulse 1s infinite' }}>⏺</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--error)' }}>Recording…</span>
+            <span style={{ fontSize: 11, color: 'var(--text3)' }}>Interact with the browser — steps are captured automatically</span>
+          </div>
+          <button className="btn btn-sm" onClick={handleStopRecording}
+            style={{ background: 'var(--error)', color: '#fff', fontWeight: 600 }}>
+            ⏹ Stop Recording
+          </button>
+        </div>
+      )}
+
+      {recError && (
+        <div style={{ color: 'var(--error)', background: 'var(--bg2)', border: '1px solid var(--error)', borderRadius: 6, padding: '10px 14px', marginBottom: 14, fontSize: 12 }}>
+          ⚠ {recError}
+        </div>
+      )}
+
       {loading && <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 16 }}>Parsing CSV…</div>}
 
       {error && (
@@ -131,7 +192,15 @@ export default function Panel1Import({ onImported, initialSteps }) {
         <div style={{ background: 'var(--bg2)', borderRadius: 8, padding: 16, border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--text2)' }}>Supported actions</div>
-            <button className="btn btn-secondary btn-sm" onClick={addStep}>+ Add step manually</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {!recording
+                ? <button className="btn btn-sm" onClick={handleStartRecording}
+                    style={{ background: 'var(--error)', color: '#fff', fontWeight: 600 }}>⏺ Record</button>
+                : <button className="btn btn-sm" onClick={handleStopRecording}
+                    style={{ background: 'var(--error)', color: '#fff', fontWeight: 600 }}>⏹ Stop</button>
+              }
+              <button className="btn btn-secondary btn-sm" onClick={addStep}>+ Add step manually</button>
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {ACTION_DOCS.map(([action, desc]) => (
@@ -156,6 +225,12 @@ export default function Panel1Import({ onImported, initialSteps }) {
               {editingId && <span style={{ fontSize: 11, color: 'var(--accent)' }}>● Editing row {editingId}</span>}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
+              {!recording
+                ? <button className="btn btn-sm" onClick={handleStartRecording} disabled={!!editingId}
+                    style={{ background: 'var(--error)', color: '#fff', fontWeight: 600 }}>⏺ Record</button>
+                : <button className="btn btn-sm" onClick={handleStopRecording}
+                    style={{ background: 'var(--error)', color: '#fff', fontWeight: 600 }}>⏹ Stop</button>
+              }
               <button className="btn btn-secondary btn-sm" onClick={addStep} disabled={!!editingId}>+ Add step</button>
               <button className="btn btn-secondary btn-sm" onClick={() => { setSteps(null); setError(null); setEditingId(null); }}>
                 Change file

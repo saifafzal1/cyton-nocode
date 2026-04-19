@@ -11,6 +11,18 @@ export async function uploadCSV(file) {
   return res.json();
 }
 
+export async function startRecording() {
+  const res = await fetch(`${BASE}/api/record/start`, { method: 'POST' });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || 'Could not start recording'); }
+  return res.json();
+}
+
+export async function stopRecording() {
+  const res = await fetch(`${BASE}/api/record/stop`, { method: 'POST' });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || 'Could not stop recording'); }
+  return res.json();
+}
+
 export async function executeSteps(steps, options = {}) {
   const res = await fetch(`${BASE}/api/execute`, {
     method: 'POST',
