@@ -29,6 +29,40 @@ const inputStyle = {
 
 const cellStyle = { padding: '4px 6px', verticalAlign: 'middle' };
 
+function SampleDownloads() {
+  const [files, setFiles] = useState([]);
+  useEffect(() => {
+    fetch('http://localhost:3001/api/samples')
+      .then(r => r.json())
+      .then(d => setFiles(d.files || []))
+      .catch(() => {});
+  }, []);
+
+  if (!files.length) return null;
+  return (
+    <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+      <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 6 }}>Sample CSV files</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {files.map(f => (
+          <a
+            key={f}
+            href={`http://localhost:3001/samples/${f}`}
+            download={f}
+            style={{
+              fontSize: 11, color: 'var(--accent)', fontFamily: 'var(--mono)',
+              background: 'var(--bg3)', border: '1px solid var(--border)',
+              borderRadius: 4, padding: '3px 8px', textDecoration: 'none',
+              display: 'flex', alignItems: 'center', gap: 4,
+            }}
+          >
+            ↓ {f}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Panel1Import({ onImported, initialSteps }) {
   const [dragging, setDragging]     = useState(false);
   const [steps, setSteps]           = useState(initialSteps?.length ? initialSteps : null);
@@ -210,9 +244,7 @@ export default function Panel1Import({ onImported, initialSteps }) {
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 12, fontSize: 11, color: 'var(--text3)' }}>
-            Sample: <code style={{ color: 'var(--info)' }}>samples/cura-tests.csv</code>
-          </div>
+          <SampleDownloads />
         </div>
       )}
 
