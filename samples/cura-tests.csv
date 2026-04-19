@@ -1,0 +1,17 @@
+id,action,target,value,expected,description
+1,navigate,https://katalon-demo-cura.herokuapp.com/,,CURA Healthcare Service,Open CURA homepage
+2,assert_visible,#btn-make-appointment,,,Verify Make Appointment button is visible
+3,click,#btn-make-appointment,,,Click Make Appointment button
+4,assert_visible,#txt-username,,,Verify login page loaded
+5,fill,#txt-username,John Doe,,Enter valid username
+6,fill,#txt-password,ThisIsNotAPassword,,Enter valid password
+7,click,#btn-login,,,Submit login credentials
+8,assert_visible,#combo_facility,,,Verify appointment form is loaded
+9,select,#combo_facility,Hongkong CURA Healthcare Center,,Select Hongkong facility
+10,check,#chk_hospotal_readmission,,,Enable hospital readmission option
+11,click,#radio_program_medicaid,,,Select Medicaid healthcare program
+12,fill,#txt_visit_date,27/07/2026,,Enter appointment visit date
+13,fill,#txt_comment,Routine checkup and annual follow-up,,Enter appointment comment
+14,click,#btn-book-appointment,,,Submit appointment booking
+15,assert_url,,,appointment.php,Verify redirected to confirmation page
+16,assert_visible,#summary,,,Verify appointment summary is displayed
