@@ -6,20 +6,22 @@ id,action,target,value,expected,description
 5,click,#login-button,,,Click Login button
 6,assert_url,inventory.html,,,Assert redirected to inventory
 7,assert_visible,.inventory_list,,,Assert product list is visible
-8,click,[data-test="add-to-cart-sauce-labs-backpack"],,,Add Backpack to cart
-9,click,[data-test="add-to-cart-sauce-labs-bike-light"],,,Add Bike Light to cart
-10,assert_text,.shopping_cart_badge,2,,Assert cart badge shows 2 items
-11,click,.shopping_cart_link,,,Click cart icon
-12,assert_url,cart.html,,,Assert on cart page
-13,assert_visible,.cart_item,,,Assert cart items are visible
-14,click,#checkout,,,Click Checkout button
-15,assert_url,checkout-step-one,,,Assert on checkout info page
-16,fill,#first-name,John,,Enter first name
-17,fill,#last-name,Doe,,Enter last name
-18,fill,#postal-code,10001,,Enter zip code
-19,click,#continue,,,Click Continue
-20,assert_url,checkout-step-two,,,Assert on order overview page
-21,assert_visible,.summary_info,,,Assert order summary is visible
-22,click,#finish,,,Click Finish
-23,assert_visible,.complete-header,,,Assert order confirmation visible
-24,assert_text,.complete-header,Thank you,, Assert thank you message displayed
+8,click,#add-to-cart-sauce-labs-backpack,,,Add Backpack to cart
+9,wait,,500,,Wait for cart to update
+10,click,#add-to-cart-sauce-labs-bike-light,,,Add Bike Light to cart
+11,wait,,500,,Wait for cart to update
+12,assert_text,.shopping_cart_badge,2,,Assert cart badge shows 2 items
+13,click,.shopping_cart_link,,,Click cart icon
+14,assert_url,cart.html,,,Assert on cart page
+15,assert_visible,.cart_item,,,Assert cart items are visible
+16,click,#checkout,,,Click Checkout button
+17,assert_url,checkout-step-one,,,Assert on checkout info page
+18,fill,#first-name,John,,Enter first name
+19,fill,#last-name,Doe,,Enter last name
+20,fill,#postal-code,10001,,Enter zip code
+21,click,#continue,,,Click Continue
+22,assert_url,checkout-step-two,,,Assert on order overview page
+23,assert_visible,.summary_info,,,Assert order summary is visible
+24,click,#finish,,,Click Finish
+25,assert_visible,.complete-header,,,Assert order confirmation visible
+26,assert_text,.complete-header,Thank you,,Assert thank you message displayed

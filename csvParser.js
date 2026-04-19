@@ -8,6 +8,7 @@ function parseCSV(filePath) {
     columns: true,
     skip_empty_lines: true,
     trim: true,
+    relax_quotes: true,
   });
 
   return records.map((row, i) => ({
