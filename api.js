@@ -23,3 +23,42 @@ export async function executeSteps(steps, options = {}) {
   }
   return res.json();
 }
+
+export async function generateCypressSpec(steps, results) {
+  const res = await fetch(`${BASE}/api/cypress/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ steps, results }),
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.error || 'Generation failed');
+  }
+  return res.json();
+}
+
+export async function fixCypressSpec(spec, errorOutput) {
+  const res = await fetch(`${BASE}/api/cypress/fix`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ spec, errorOutput }),
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.error || 'Fix failed');
+  }
+  return res.json();
+}
+
+export async function runCypressSpec(spec) {
+  const res = await fetch(`${BASE}/api/cypress/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ spec }),
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.error || 'Run failed');
+  }
+  return res.json();
+}

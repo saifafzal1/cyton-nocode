@@ -7,9 +7,11 @@ const multer  = require('multer');
 const path    = require('path');
 const fs      = require('fs');
 
-const { parseCSV }     = require('./csvParser');
-const { executeSteps } = require('./executor');
-const { saveReport }   = require('./reportWriter');
+const { parseCSV }            = require('./csvParser');
+const { executeSteps }        = require('./executor');
+const { saveReport }          = require('./reportWriter');
+const { generateCypressSpec, fixCypressSpec } = require('./cypressGenerator');
+const { runCypress }          = require('./cypressRunner');
 
 const app    = express();
 const server = http.createServer(app);
@@ -34,6 +36,10 @@ global.emitLog = (message, level = 'info') => {
 global.emitStep = (stepId, status, error = null) => {
   io.emit('step', { stepId, status, error });
 };
+
+// Cypress Panel 3 helpers
+global.emitCypressToken = (token) => io.emit('cypress:token', token);
+global.emitCypressLog   = (line)  => io.emit('cypress:runlog', line);
 
 // POST /api/upload — parse CSV, return steps array
 app.post('/api/upload', upload.single('file'), async (req, res) => {
@@ -78,6 +84,47 @@ app.post('/api/execute', async (req, res) => {
 });
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+
+// POST /api/cypress/generate — LLM generates a Cypress spec, streams tokens via socket
+app.post('/api/cypress/generate', async (req, res) => {
+  const { steps, results } = req.body;
+  if (!Array.isArray(steps) || steps.length === 0)
+    return res.status(400).json({ error: 'steps array is required.' });
+  try {
+    const spec = await generateCypressSpec(steps, results || [], global.emitCypressToken);
+    io.emit('cypress:done', { spec });
+    res.json({ spec });
+  } catch (err) {
+    io.emit('cypress:error', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/cypress/fix — LLM fixes a broken spec
+app.post('/api/cypress/fix', async (req, res) => {
+  const { spec, errorOutput } = req.body;
+  if (!spec) return res.status(400).json({ error: 'spec is required.' });
+  try {
+    const fixed = await fixCypressSpec(spec, errorOutput || '', global.emitCypressToken);
+    io.emit('cypress:done', { spec: fixed });
+    res.json({ spec: fixed });
+  } catch (err) {
+    io.emit('cypress:error', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/cypress/run — run the spec with Cypress CLI, stream output via socket
+app.post('/api/cypress/run', async (req, res) => {
+  const { spec } = req.body;
+  if (!spec) return res.status(400).json({ error: 'spec is required.' });
+  try {
+    const result = await runCypress(spec, global.emitCypressLog);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`);

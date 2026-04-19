@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import socket from './socket';
 import Panel1Import from './Panel1Import';
 import Panel2Execute from './Panel2Execute';
+import Panel3Cypress from './Panel3Cypress';
 
 const PANELS = [
   { id: 1, label: '1 · Import CSV' },
   { id: 2, label: '2 · Execute & Results' },
+  { id: 3, label: '3 · Cypress Generator' },
 ];
 
 export default function App() {
@@ -113,6 +115,9 @@ export default function App() {
             onReset={handleReset}
           />
         )}
+        {activePanel === 3 && (
+          <Panel3Cypress steps={steps} results={results} />
+        )}
       </div>
 
       {/* Status bar */}
@@ -129,7 +134,7 @@ export default function App() {
             {passed}/{total} steps passed
           </span>
         )}
-        <span style={{ marginLeft: 'auto' }}>Panel {activePanel}/2</span>
+        <span style={{ marginLeft: 'auto' }}>Panel {activePanel}/3</span>
       </div>
     </div>
   );
