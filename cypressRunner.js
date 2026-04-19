@@ -3,19 +3,27 @@ const { spawn } = require('child_process');
 const fs   = require('fs');
 const path = require('path');
 
-const SPEC_DIR  = path.join(__dirname, 'cypress', 'e2e');
-const SPEC_PATH = path.join(SPEC_DIR, '_generated.cy.js');
+const DEFAULT_SPEC_DIR = path.join(__dirname, 'cypress', 'e2e');
 const CYPRESS_BIN = path.join(__dirname, 'node_modules', '.bin', 'cypress');
 
-function saveSpec(spec) {
-  if (!fs.existsSync(SPEC_DIR)) fs.mkdirSync(SPEC_DIR, { recursive: true });
-  fs.writeFileSync(SPEC_PATH, spec, 'utf8');
+function resolveSpecPath(outputDir) {
+  const dir = outputDir
+    ? (path.isAbsolute(outputDir) ? outputDir : path.join(__dirname, outputDir))
+    : DEFAULT_SPEC_DIR;
+  return path.join(dir, '_generated.cy.js');
 }
 
-function runCypress(spec, onLog) {
+function saveSpec(spec, specPath) {
+  const dir = path.dirname(specPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(specPath, spec, 'utf8');
+}
+
+function runCypress(spec, onLog, outputDir) {
+  const SPEC_PATH = resolveSpecPath(outputDir);
   return new Promise((resolve) => {
-    saveSpec(spec);
-    onLog('[cypress] Spec saved, launching runner…');
+    saveSpec(spec, SPEC_PATH);
+    onLog(`[cypress] Spec saved → ${SPEC_PATH}`);
 
     const proc = spawn(CYPRESS_BIN, ['run', '--spec', SPEC_PATH, '--headless'], {
       cwd: __dirname,

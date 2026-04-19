@@ -9,20 +9,26 @@ const btn = (extra = {}) => ({
   fontSize: 12, fontWeight: 600, fontFamily: 'var(--sans)', ...extra,
 });
 
+const DEFAULT_DIR = 'cypress/e2e';
+
 export default function Panel3Cypress({ steps, results }) {
-  const [spec, setSpec]           = useState('');
+  const [spec, setSpec]             = useState('');
+  const [outputDir, setOutputDir]   = useState(DEFAULT_DIR);
+  const [browsing, setBrowsing]     = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [running, setRunning]     = useState(false);
+  const [running, setRunning]       = useState(false);
   const [autoFixing, setAutoFixing] = useState(false);
   const [fixAttempt, setFixAttempt] = useState(0);
-  const [runResult, setRunResult] = useState(null);
-  const [runLogs, setRunLogs]     = useState([]);
-  const [error, setError]         = useState('');
+  const [runResult, setRunResult]   = useState(null);
+  const [runLogs, setRunLogs]       = useState([]);
+  const [error, setError]           = useState('');
 
-  const logsRef    = useRef(null);
-  const tokenBuf   = useRef('');
-  const specRef    = useRef(spec);
-  specRef.current  = spec;
+  const logsRef      = useRef(null);
+  const tokenBuf     = useRef('');
+  const specRef      = useRef(spec);
+  const outputDirRef = useRef(outputDir);
+  specRef.current      = spec;
+  outputDirRef.current = outputDir;
 
   // Auto-scroll logs
   useEffect(() => {
@@ -54,6 +60,19 @@ export default function Panel3Cypress({ steps, results }) {
   const canGenerate = steps?.length > 0 && !generating && !running && !autoFixing;
   const canRun      = spec.trim().length > 0 && !generating && !running && !autoFixing;
 
+  async function handleBrowse() {
+    setBrowsing(true);
+    try {
+      const res  = await fetch(`${BASE}/api/cypress/browse-dir`);
+      const data = await res.json();
+      if (!data.cancelled && data.dir) setOutputDir(data.dir);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBrowsing(false);
+    }
+  }
+
   async function handleGenerate() {
     setError('');
     setSpec('');
@@ -83,7 +102,7 @@ export default function Panel3Cypress({ steps, results }) {
       const res = await fetch(`${BASE}/api/cypress/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ spec: specToRun ?? specRef.current }),
+        body: JSON.stringify({ spec: specToRun ?? specRef.current, outputDir: outputDirRef.current }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Run failed');
@@ -117,7 +136,7 @@ export default function Panel3Cypress({ steps, results }) {
         const res = await fetch(`${BASE}/api/cypress/run`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ spec: currentSpec }),
+          body: JSON.stringify({ spec: currentSpec, outputDir: outputDirRef.current }),
         });
         result = await res.json();
         setRunResult(result);
@@ -223,6 +242,32 @@ export default function Panel3Cypress({ steps, results }) {
             {runResult.passed} passed · {runResult.failed} failed
           </span>
         )}
+      </div>
+
+      {/* Output directory picker */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 11, color: 'var(--text3)', whiteSpace: 'nowrap', fontWeight: 600 }}>
+          OUTPUT DIR
+        </span>
+        <input
+          value={outputDir}
+          onChange={e => setOutputDir(e.target.value)}
+          placeholder="e.g. cypress/e2e  or  /absolute/path/to/specs"
+          style={{
+            flex: 1, background: 'var(--bg2)', border: '1px solid var(--border)',
+            borderRadius: 5, color: 'var(--text)', padding: '5px 10px',
+            fontSize: 12, fontFamily: "'JetBrains Mono', monospace", outline: 'none',
+          }}
+        />
+        <button
+          onClick={handleBrowse} disabled={browsing || busy}
+          style={btn({
+            background: 'var(--bg3)', color: 'var(--text)',
+            border: '1px solid var(--border)', whiteSpace: 'nowrap',
+          })}
+        >
+          {browsing ? '…' : '📁 Browse'}
+        </button>
       </div>
 
       {error && (

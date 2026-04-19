@@ -7,6 +7,7 @@ const multer  = require('multer');
 const path    = require('path');
 const fs      = require('fs');
 
+const { exec }                = require('child_process');
 const { parseCSV }            = require('./csvParser');
 const { executeSteps }        = require('./executor');
 const { saveReport }          = require('./reportWriter');
@@ -114,12 +115,23 @@ app.post('/api/cypress/fix', async (req, res) => {
   }
 });
 
+// GET /api/cypress/browse-dir — open native OS folder picker, return chosen path
+app.get('/api/cypress/browse-dir', (_req, res) => {
+  exec(
+    `osascript -e 'POSIX path of (choose folder with prompt "Select output directory for Cypress spec")'`,
+    (err, stdout) => {
+      if (err) return res.json({ cancelled: true });
+      res.json({ dir: stdout.trim() });
+    }
+  );
+});
+
 // POST /api/cypress/run — run the spec with Cypress CLI, stream output via socket
 app.post('/api/cypress/run', async (req, res) => {
-  const { spec } = req.body;
+  const { spec, outputDir } = req.body;
   if (!spec) return res.status(400).json({ error: 'spec is required.' });
   try {
-    const result = await runCypress(spec, global.emitCypressLog);
+    const result = await runCypress(spec, global.emitCypressLog, outputDir);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
