@@ -36,6 +36,7 @@ A CSV-driven browser test runner built with React + Playwright. Import a structu
 | `assert_text` | `target` = CSS selector, `expected` = text substring |
 | `assert_url` | `expected` = URL substring |
 | `wait` | `value` = milliseconds |
+| `press_key` | `value` = key name (`Enter`, `Escape`, `Tab`, `ArrowDown`, `Control+a`, …), `target` = CSS selector to focus first (optional) |
 
 A sample 16-step test for the [CURA demo app](https://katalon-demo-cura.herokuapp.com/) is included at `samples/cura-tests.csv`.
 

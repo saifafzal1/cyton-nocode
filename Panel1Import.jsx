@@ -3,7 +3,7 @@ import { uploadCSV } from './api';
 
 const ACTIONS = [
   'navigate','click','fill','select','check','uncheck',
-  'assert_visible','assert_text','assert_url','wait',
+  'assert_visible','assert_text','assert_url','wait','press_key',
 ];
 
 const ACTION_DOCS = [
@@ -17,6 +17,7 @@ const ACTION_DOCS = [
   ['assert_text',    'target=CSS selector · expected=text substring'],
   ['assert_url',     'expected=URL substring'],
   ['wait',           'value=milliseconds'],
+  ['press_key',      'value=key (Enter, Escape, Tab, ArrowDown…) · target=CSS selector to focus first (optional)'],
 ];
 
 const inputStyle = {

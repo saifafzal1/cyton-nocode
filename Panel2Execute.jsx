@@ -4,7 +4,7 @@ import socket from './socket';
 
 const ACTIONS = [
   'navigate','click','fill','select','check','uncheck',
-  'assert_visible','assert_text','assert_url','wait',
+  'assert_visible','assert_text','assert_url','wait','press_key',
 ];
 
 const inputStyle = {

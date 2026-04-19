@@ -202,6 +202,15 @@ async function runStep(page, step) {
       break;
     }
 
+    case 'press_key':
+      // target = optional CSS selector to focus first; value = key(s) e.g. "Enter", "Escape", "Control+a"
+      if (target) {
+        await page.waitForSelector(target, { state: 'visible', timeout: TIMEOUT });
+        await page.focus(target);
+      }
+      await page.keyboard.press(value || 'Enter');
+      break;
+
     case 'wait':
       await page.waitForTimeout(parseInt(value, 10) || 1000);
       break;
