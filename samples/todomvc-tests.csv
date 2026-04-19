@@ -1,0 +1,19 @@
+id,action,target,value,expected,description
+1,navigate,https://todomvc.com/examples/react/dist/,,TodoMVC,Navigate to TodoMVC React app
+2,assert_visible,.new-todo,,,Assert todo input is visible
+3,fill,.new-todo,Buy groceries,,Type first todo
+4,press_key,.new-todo,Enter,,Submit first todo
+5,fill,.new-todo,Walk the dog,,Type second todo
+6,press_key,.new-todo,Enter,,Submit second todo
+7,fill,.new-todo,Read a book,,Type third todo
+8,press_key,.new-todo,Enter,,Submit third todo
+9,assert_text,.todo-count,3,,Assert 3 items remaining
+10,click,.todo-list li:first-child .toggle,,,Mark first todo as complete
+11,assert_text,.todo-count,2,,Assert 2 items remaining
+12,click,.filters li:nth-of-type(3) a,,,Click Completed filter
+13,assert_visible,.todo-list li.completed,,,Assert completed item is visible
+14,click,.filters li:nth-of-type(2) a,,,Click Active filter
+15,assert_visible,.todo-list li:not(.completed),,,Assert active items are visible
+16,click,.filters li:nth-of-type(1) a,,,Click All filter
+17,click,.clear-completed,,,Clear completed todos
+18,assert_text,.todo-count,2,,Assert 2 items remaining after clear

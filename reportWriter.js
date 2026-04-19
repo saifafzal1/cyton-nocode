@@ -24,6 +24,9 @@ function saveReport(steps, results) {
     const step = steps.find(s => s.id === r.id) || {};
     const statusClass = r.passed ? 'pass' : 'fail';
     const icon        = r.passed ? '✔' : '✖';
+    const screenshotHtml = (!r.passed && r.screenshot)
+      ? `<div class="shot-wrap"><img class="shot" src="data:image/png;base64,${r.screenshot}" alt="failure screenshot"/></div>`
+      : '';
     return `
       <tr class="${statusClass}">
         <td>${r.id}</td>
@@ -31,7 +34,7 @@ function saveReport(steps, results) {
         <td>${esc(r.description)}</td>
         <td><code>${esc(step.action || '')}</code></td>
         <td><code>${esc(step.target || '')}</code></td>
-        <td>${r.error ? `<span class="err">${esc(r.error)}</span>` : '—'}</td>
+        <td>${r.error ? `<span class="err">${esc(r.error)}</span>${screenshotHtml}` : '—'}</td>
       </tr>`;
   }).join('');
 
@@ -63,6 +66,9 @@ function saveReport(steps, results) {
     tr.fail { background:rgba(239,68,68,.04); }
     code  { font-family:'JetBrains Mono',monospace; font-size:11px; color:#6366f1; }
     .err  { color:#ef4444; font-size:11px; }
+    .shot-wrap { margin-top:8px; }
+    .shot { max-width:480px; width:100%; border-radius:4px; border:1px solid #2a3045; cursor:pointer; }
+    .shot:hover { max-width:100%; }
   </style>
 </head>
 <body>

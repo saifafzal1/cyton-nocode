@@ -39,6 +39,9 @@ async function executeSteps(steps, { debug = false, stepDelay = 0 } = {}) {
       global.emitStep(step.id, 'passed');
     } catch (err) {
       result.error = err.message;
+      result.screenshot = await page.screenshot({ type: 'png' })
+        .then(buf => buf.toString('base64'))
+        .catch(() => null);
       global.emitLog(`✖ [${i + 1}] ${step.description}: ${err.message}`, 'error');
       global.emitStep(step.id, 'failed', err.message);
     }
@@ -74,6 +77,8 @@ async function executeSteps(steps, { debug = false, stepDelay = 0 } = {}) {
             result.error  = err.message;
             currentError  = err.message;
             resultMap.set(updatedStep.id, { ...result });
+            result.screenshot = await page.screenshot({ type: 'png' })
+              .then(buf => buf.toString('base64')).catch(() => null);
             global.emitLog(`✖ (retry) ${updatedStep.description}: ${err.message}`, 'error');
             global.emitStep(updatedStep.id, 'failed', err.message);
           }

@@ -1,0 +1,13 @@
+id,action,target,value,expected,description
+1,navigate,https://the-internet.herokuapp.com/login,,The Internet,Navigate to login page
+2,assert_visible,#username,,,Assert username field is visible
+3,assert_visible,#password,,,Assert password field is visible
+4,fill,#username,tomsmith,,Enter username
+5,fill,#password,SuperSecretPassword!,,Enter password
+6,click,button[type="submit"],,,Click Login button
+7,assert_url,/secure,,,Assert redirected to secure area
+8,assert_visible,#flash,,,Assert flash message is visible
+9,assert_text,#flash,You logged into,,Assert successful login message
+10,click,a[href="/logout"],,,Click Logout link
+11,assert_url,/login,,,Assert back on login page
+12,assert_text,#flash,You logged out,,Assert logout success message

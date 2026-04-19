@@ -21,6 +21,16 @@ const io     = new Server(server, {
 app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json({ limit: '5mb' }));
 
+// Serve sample CSV files for download
+app.use('/samples', express.static(path.join(__dirname, 'samples')));
+
+// List available sample files
+app.get('/api/samples', (_req, res) => {
+  const dir = path.join(__dirname, 'samples');
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.csv'));
+  res.json({ files });
+});
+
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
